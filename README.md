@@ -12,33 +12,36 @@ This project consists of multiple parts:
 - **TODO**: Record and map object locations.
 
 ## GeoSensor
+
 **Latest Version: v1.0.0**
+
 *TODO:*
 - Add test cases to verify equations
 - Perform small scale real-world test to check accuracy
+
 ### Classes: 
 - GeoSensor: Contains constants used in calculation and methods for calculations.
-    #### Methods
-    - pixelToPhysical
+    #### GeoSensor Methods:
+    - pixelToPhysical(int x, int x) -> tuple
         - *Input:  x, y - pixel coordinates*
         - *Output: physicalX, physicalY - physical distance from the bottom left of the sensor in meters*
         - *This method converts pixel coordinates to physical distances across the sensor.*
-    - physicalToAngle
+    - physicalToAngle(float physicalX, float physicalY) -> tuple
         - *Input:  physicalX, physicalY - physical distance from the bottom left of the sensor in meters*
         - *Output: angleX, angleY - angle in radians from the center of the sensor*
         - *This method converts physical distances to angles from the center of the sensor.*
-    - getYOffset
+    - getYOffset(float height, float angleY) -> float
         - *Input:  height - height of the sensor from the ground in meters*
         - *Input:  angleY - angle in the y direction in radians*
         - *Output: yOffset - offset in the y direction in meters*
         - *This method calculates the offset in the forwards (y) direction from the point directly below the sensor.*
-    - getXOffset
+    - getXOffset(float height, float angleX, float angleY) -> float
         - *Input:  height - height of the sensor from the ground in meters*
         - *Input: angleX - angle in the x direction in radians*
         - *Input: angleY - angle in the y direction in radians*
         - *Output: xOffset - offset in the x direction in meters*
         - *This method calculates the offset in the sideways (x) direction from the point directly below the sensor.*
-    - geoSensorIO
+    - geoSensorIO(int x, int y) -> tuple
         - *Input:  x, y - pixel coordinates*
         - *height - height of the sensor from the ground in meters*
         - *Output: xOffset, yOffset - offsets in the x and y directions in meters*
