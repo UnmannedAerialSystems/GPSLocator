@@ -20,34 +20,29 @@ This project consists of multiple parts:
 - GeoSensor: Contains constants used in calculation and methods for calculations.
     #### Methods
     - pixelToPhysical
-        *Input:  x, y - pixel coordinates*
-        *Output: physicalX, physicalY - physical distance from the bottom left of the sensor in meters*
-
-        *This method converts pixel coordinates to physical distances across the sensor.*
+        - *Input:  x, y - pixel coordinates*
+        - *Output: physicalX, physicalY - physical distance from the bottom left of the sensor in meters*
+        - *This method converts pixel coordinates to physical distances across the sensor.*
     - physicalToAngle
-        *Input:  physicalX, physicalY - physical distance from the bottom left of the sensor in meters*
-        *Output: angleX, angleY - angle in radians from the center of the sensor*
-
-        *This method converts physical distances to angles from the center of the sensor.*
+        - *Input:  physicalX, physicalY - physical distance from the bottom left of the sensor in meters*
+        - *Output: angleX, angleY - angle in radians from the center of the sensor*
+        - *This method converts physical distances to angles from the center of the sensor.*
     - getYOffset
-        *Input:  height - height of the sensor from the ground in meters*
-                *angleY - angle in the y direction in radians*
-        *Output: yOffset - offset in the y direction in meters*
-
-        *This method calculates the offset in the forwards (y) direction from the point directly below the sensor.*
+        - *Input:  height - height of the sensor from the ground in meters*
+        - *Input:  angleY - angle in the y direction in radians*
+        - *Output: yOffset - offset in the y direction in meters*
+        - *This method calculates the offset in the forwards (y) direction from the point directly below the sensor.*
     - getXOffset
-        *Input:  height - height of the sensor from the ground in meters*
-                *angleX - angle in the x direction in radians*
-                *angleY - angle in the y direction in radians*
-        *Output: xOffset - offset in the x direction in meters*
-
-        *This method calculates the offset in the sideways (x) direction from the point directly below the sensor.*
+        - *Input:  height - height of the sensor from the ground in meters*
+        - *Input: angleX - angle in the x direction in radians*
+        - *Input: angleY - angle in the y direction in radians*
+        - *Output: xOffset - offset in the x direction in meters*
+        - *This method calculates the offset in the sideways (x) direction from the point directly below the sensor.*
     - geoSensorIO
-        *Input:  x, y - pixel coordinates*
-                *height - height of the sensor from the ground in meters*
-        *Output: xOffset, yOffset - offsets in the x and y directions in meters*
-
-        *This is the main IO method for the GeoSensor module. It takes pixel coordinates and height as input and returns the offsets in the x and y directions.*
+        - *Input:  x, y - pixel coordinates*
+        - *height - height of the sensor from the ground in meters*
+        - *Output: xOffset, yOffset - offsets in the x and y directions in meters*
+        - *This is the main IO method for the GeoSensor module. It takes pixel coordinates and height as input and returns the offsets in the x and y directions.*
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
