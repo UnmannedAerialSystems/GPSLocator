@@ -2,7 +2,7 @@
 PSU UAS GEOSENSOR
 Author: Ted Tasman
 Date: 2024-09-26
-Description: This module converts sensor coordinates to geospatial coordinates.
+Description: This module converts sensor coordinates to geospatial displacement.
 Version: v1.0.0
 """
 
