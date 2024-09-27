@@ -21,7 +21,7 @@ This project consists of multiple parts:
 
 ### Classes: 
 - GeoSensor: Contains constants used in calculation and methods for calculations.
-    #### GeoSensor Methods:
+    #### Methods:
     - pixelToPhysical(int x, int x) -> tuple
         - *Input:  x, y - pixel coordinates*
         - *Output: physicalX, physicalY - physical distance from the bottom left of the sensor in meters*
