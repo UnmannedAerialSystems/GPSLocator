@@ -10,7 +10,7 @@ from math import atan, tan, cos, pi
 
 class GeoSensor:
     # CONSTANTS -- Depending on the sensor, these values may change
-    MOUNTING_ANGLE = pi / 4    # mounting angle of the sensor in radians (0 is down, pi/2 is horizontal)
+    MOUNTING_ANGLE = 0    # mounting angle of the sensor in radians (0 is down, pi/2 is horizontal)
     RESOLUTION_X = 1332             # resolution of the sensor in the x direction
     RESOLUTION_Y = 990              # resolution of the sensor in the y direction
     FOCAL_LENGTH = 0.015            # focal length of the sensor in meters
