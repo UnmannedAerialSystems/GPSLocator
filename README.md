@@ -19,10 +19,11 @@ This project consists of multiple parts:
 - TESTING
 
 ### Classes:
-- Craft: Maintains craft position and target list
-    - Init: (lat: float=0, lon: float=0, alt: float=0, heading: float=0)
-    - Creates a GeoSensor object
-    #### Methods:
+#### Craft
+- Maintains craft position and target list
+- Init: (lat: float=0, lon: float=0, alt: float=0, heading: float=0)
+- Creates a GeoSensor object
+    ##### Methods:
     - update(lat: float, lon: float, alt: float, heading: float)
         - *Input:  lat - craft GPS latitude*
         - *Input:  lon - craft GPS longitude*
@@ -38,9 +39,10 @@ This project consists of multiple parts:
         - *Input:   x, y - pixel coordinates*
         - *Output:  Target object*
         - *Calls getDisplacement and converts the x and y displacement into GPS coordinates, then creates a Target object at that location. This target is also added to the craft's target list.*
-- Target: Holds target GPS coordinates
-    - Init: (lat: float, lon: float)
-    #### Methods:
+#### Target:
+- Holds target GPS coordinates
+- Init: (lat: float, lon: float)
+    ##### Methods:
     - update(lat: float, lon: float)
         - *Input:  lat - craft GPS latitude*
         - *Input:  lon - craft GPS longitude*
@@ -54,8 +56,9 @@ This project consists of multiple parts:
 - TESTING
 
 ### Classes: 
-- GeoSensor: Contains constants used in calculation and methods for calculations.
-    #### Methods:
+#### GeoSensor:
+- Contains constants used in calculation and methods for calculations.
+    ##### Methods:
     - pixelToPhysical(int x, int x) -> tuple
         - *Input:  x, y - pixel coordinates*
         - *Output: physicalX, physicalY - physical distance from the bottom left of the sensor in meters*
