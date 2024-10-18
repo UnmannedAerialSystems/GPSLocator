@@ -7,9 +7,8 @@ GPSLocator is a project for the PSU UAS club. The goal of this project is to acc
 
 ## Contents Overview
 This project consists of multiple parts:
+- [TargetMapper](#targetmapper): Calculate and record actual positions based on current GPS location and heading. 
 - [GeoSensor](#geosensor): Calculates position offset from pixel coordinates.
-- **TODO**: Calculate actual positions based on current GPS location and heading.
-- **TODO**: Record and map object locations.
 
 ## TargetMapper
 
