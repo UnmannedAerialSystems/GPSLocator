@@ -15,19 +15,23 @@ EARTH_RADIUS = 6371000  # Earth's radius in meters
 
 class Craft:
 
-    def __init__(self, lat: float=0, lon: float=0, alt: float=0, heading: float=0):
+    def __init__(self, lat: float=0, lon: float=0, alt: float=0, roll: float=0, pitch: float=0, heading: float=0):
         self.lat = lat
         self.lon = lon
         self.alt = alt
+        self.pitch = pitch
+        self.roll = roll
         self.heading = heading
         self.geosensor = geosensor.GeoSensor()
         self.targetList: List[Target] = []
 
 
-    def update(self, lat: float, lon: float, alt: float, heading: float):
+    def update(self, lat: float, lon: float, alt: float, roll: float, pitch: float, heading: float):
         self.lat = lat
         self.lon = lon
         self.alt = alt
+        self.pitch = pitch
+        self.roll = roll
         self.heading = heading
 
     def getDisplacement(self, x: int, y: int) -> tuple:
@@ -37,7 +41,7 @@ class Craft:
 
         This method converts pixel coordinates to physical distances across the sensor.
         '''
-        xOffset, yOffset = self.geosensor.geoSensorIO(x, y, self.alt)
+        xOffset, yOffset = self.geosensor.geoSensorIO(x, y, self.alt, self.roll, self.pitch)
 
         # Convert the heading to radians
         heading = self.heading * pi / 180
@@ -69,3 +73,5 @@ class Target:
     def update(self, lat: float, lon: float):
         self.lat = lat
         self.lon = lon
+
+
