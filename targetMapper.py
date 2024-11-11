@@ -58,8 +58,8 @@ class Craft:
         dx, dy = self.getDisplacement(x, y)
 
         # get the target latitude and longitude
-        latTarget  = self.lat  + (dy / EARTH_RADIUS) * (180 / pi);
-        lonTarget = self.lon + (dx / EARTH_RADIUS) * (180 / pi) / cos(self.lat * pi/180);
+        latTarget  = self.lat  + (dy / EARTH_RADIUS) * (180 / pi)
+        lonTarget = self.lon + (dx / EARTH_RADIUS) * (180 / pi) / cos(self.lat * pi/180)
 
         return Target(latTarget, lonTarget)
 

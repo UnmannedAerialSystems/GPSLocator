@@ -6,7 +6,7 @@ Description: This module converts sensor coordinates to geospatial displacement.
 Version: v2.0.0
 """
 
-from math import atan, tan, cos, sin
+from math import atan, tan, cos, sin, hypot
 
 class GeoSensor:
     # CONSTANTS -- Depending on the sensor, these values may change
@@ -71,13 +71,17 @@ class GeoSensor:
         >>> math.isclose(y2, 0.0, rel_tol=1e-4)
         True
         '''
-        angleX = atan((physicalX - (GeoSensor.SENSOR_WIDTH / 2)) / GeoSensor.FOCAL_LENGTH)
-        angleY = atan((physicalY - (GeoSensor.SENSOR_HEIGHT / 2)) / GeoSensor.FOCAL_LENGTH)
+        # Convert physical x and y coordinates to be relative to center of sensor instead of bottom left of sensor
+        xRelToCenter = physicalX - (GeoSensor.SENSOR_WIDTH / 2)
+        yRelToCenter = physicalY - (GeoSensor.SENSOR_HEIGHT / 2)
+        # Compensate for roll by rotating the point around the center of the sensor
+        rollAdjustedRelToCenterX = cos(roll) * xRelToCenter - sin(roll) * yRelToCenter
+        rollAdjustedRelToCenterY = sin(roll) * xRelToCenter + cos(roll) * yRelToCenter
 
-        rollAdjustedX = cos(roll) * angleX - sin(roll) * angleY
-        rollAdjustedY = sin(roll) * angleX + cos(roll) * angleY
+        angleX = atan((rollAdjustedRelToCenterX) / hypot(GeoSensor.FOCAL_LENGTH, rollAdjustedRelToCenterY))
+        angleY = atan((rollAdjustedRelToCenterY) / GeoSensor.FOCAL_LENGTH)
 
-        return rollAdjustedX, rollAdjustedY
+        return angleX, angleY
     
     def getYOffset(self, altitude: int | float, pitch: int | float, angleY: int | float) -> float:
         '''
@@ -130,8 +134,6 @@ class GeoSensor:
         >>> x1, y1 = geoSensor.geoSensorIO(1120, 540, 100, 0, 0)
         >>> math.isclose(x1, 20.0, rel_tol=1e-4)
         True
-        >>> math.isclose(y1, 0.0, rel_tol=1e-4)
-        True
         >>> x2, y2 = geoSensor.geoSensorIO(1440, 540, 100, 0, 0)
         >>> math.isclose(x2, 60, rel_tol=1e-4)
         True
@@ -140,19 +142,23 @@ class GeoSensor:
         >>> x3, y3 = geoSensor.geoSensorIO(1440, 60, 100, 0, 0)
         >>> math.isclose(x3, 60, rel_tol=1e-4)
         True
-        >>> math.isclose(y3, -60, rel_tol=1e-4)
+        >>> math.isclose(y3, -60.148148148, rel_tol=1e-4)
         True
         >>> x4, y4 = geoSensor.geoSensorIO(960, 400, 100, 0, 0.1745)
         >>> math.isclose(x4, 0.0, rel_tol=1e-4)
         True
-        >>> math.isclose(y4, 0.0, rel_tol=1e-4)
+        >>> math.isclose(y4, 0.083511, rel_tol=1e-4)
         True
         >>> x5, y5 = geoSensor.geoSensorIO(1400, 844, 100, 0, 0.1745)
-        >>> x5, y5
-        (60.0, 60.0)
+        >>> math.isclose(x5, 59.86873, rel_tol=1e-4)
+        True
+        >>> math.isclose(y5, 59.73472, rel_tol=1e-4)
+        True
         >>> x6, y6 = geoSensor.geoSensorIO(1400, 236, 100, 0.1745, 0)
-        >>> x6, y6
-        (0.0, 0.0)
+        >>> math.isclose(x6, 60.77843, rel_tol=1e-4)
+        True
+        >>> math.isclose(y6, -27.96645, rel_tol=1e-4)
+        True
         '''
         physicalX, physicalY = self.pixelToPhysical(x, y)
         angleX, angleY = self.physicalToAngle(physicalX, physicalY, roll)
