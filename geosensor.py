@@ -159,6 +159,11 @@ class GeoSensor:
         True
         >>> math.isclose(y6, -27.96645, rel_tol=1e-4)
         True
+        >>> x7, y7 = geoSensor.geoSensorIO(1400, 236, 100, 0.1745, 0.1745)
+        >>> math.isclose(x7, 58.81588, rel_tol=1e-4)
+        True
+        >>> math.isclose(y7, -9.85144, rel_tol=1e-4)
+        True
         '''
         physicalX, physicalY = self.pixelToPhysical(x, y)
         angleX, angleY = self.physicalToAngle(physicalX, physicalY, roll)
