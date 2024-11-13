@@ -50,7 +50,7 @@ This project consists of multiple parts:
 
 ## GeoSensor
 
-**Latest Version: v1.0.0**
+**Latest Version: v2.1.0**
 #### Future Additions:
 - TESTING
 

@@ -1,9 +1,9 @@
 """
 PSU UAS GEOSENSOR
-Author: Ted Tasman
+Authors: Ted Tasman, Vlad Roiban
 Date: 2024-09-26
 Description: This module converts sensor coordinates to geospatial displacement.
-Version: v2.0.0
+Version: v2.1.0
 """
 
 from math import atan, tan, cos, sin, hypot
