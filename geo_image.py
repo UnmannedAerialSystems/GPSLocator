@@ -8,7 +8,7 @@ EARTH_RADIUS = 6378137  # Earth's radius in meters
 
 
 class GeoImage:
-    def __init__(self, image_path, latitude, longitude, altitude, roll, pitch, heading, res_x, res_y, focal_length, sensor_width, sensor_height):
+    def __init__(self, image_path, latitude, longitude, altitude, roll, pitch, heading, res_x, res_y, focal_length, sensor_width, sensor_height, index=-1, logger=None):
         '''
         image_path: path to the image file
         latitude: latitude of the sensor in degrees
@@ -22,6 +22,8 @@ class GeoImage:
         focal_length: focal length of the sensor in mm
         sensor_width: width of the sensor in mm
         sensor_height: height of the sensor in mm
+        index: index of the image in the list of images
+        logger: logger object for logging
         '''
 
         self.image = cv2.imread(image_path)
@@ -37,6 +39,8 @@ class GeoImage:
         self.sensor_width = sensor_width / 1000  # Convert from mm to meters
         self.sensor_height = sensor_height / 1000  # Convert from mm to meters
         self.shape = self.image.shape
+        self.logger = logger
+        self.index = index
 
 
     def get_coordinates(self, x, y):
@@ -74,6 +78,10 @@ class GeoImage:
         new_latitude = self.latitude + (lat_offset / EARTH_RADIUS) * (180 / math.pi)
         new_longitude = self.longitude + (lon_offset / EARTH_RADIUS) * (180 / math.pi) / math.cos(self.latitude * math.pi / 180)
 
+        # logging
+        if self.logger:
+            self.logger.info(f"Coordinates of pixel ({x}, {y}) in image {self.index}: ({new_latitude}, {new_longitude})")
+
         return new_latitude, new_longitude
     
 
@@ -109,6 +117,10 @@ class GeoImage:
         x_pixel = int(physical_x * (self.res_x / self.sensor_width))
         y_pixel = int(physical_y * (self.res_y / self.sensor_height))
 
+        # logging
+        if self.logger:
+            self.logger.info(f"Pixel coordinates of ({latitude}, {longitude}) in image {self.index}: ({x_pixel}, {y_pixel})")
+
         return x_pixel, y_pixel
     
     
@@ -121,8 +133,14 @@ class GeoImage:
         longitude = coordinate.lon
         x_pixel, y_pixel = self.get_pixels(latitude, longitude)
         if 0 <= x_pixel < self.res_x and 0 <= y_pixel < self.res_y:
+            # logging
+            if self.logger:
+                self.logger.info(f"Coordinate ({latitude}, {longitude}) is within image {self.index}.")
             return True
         else:
+            # logging
+            if self.logger:
+                self.logger.info(f"Coordinate ({latitude}, {longitude}) is outside image {self.index}.")
             return False
 
 def main():
