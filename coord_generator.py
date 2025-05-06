@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../")
 from MAVez.Coordinate import Coordinate
-from .geo_image import GeoImage
+from geo_image import GeoImage
 import numpy as np
 import math
 
@@ -56,7 +56,7 @@ def generate_geo_images():
     res_x = 4056
     res_y = 3040
 
-    directory = "../GPSLocator/test_images/"
+    directory = "./test_images/"
 
     geo_images = []
 
@@ -87,3 +87,4 @@ if __name__ == "__main__":
     geo_images = generate_geo_images()
     print(geo_images[0].get_coordinates(2028, 3040))
     print(geo_images[-1].get_coordinates(2028, 0))
+    print(geo_images[6].get_coordinates(0, 1502))

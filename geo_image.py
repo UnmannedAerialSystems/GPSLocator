@@ -58,23 +58,28 @@ class GeoImage:
         # Convert pixel coordinates to physical distances from the bottom left of the sensor
         physical_y = (self.res_y - y) * (self.sensor_height / self.res_y)
         physical_x = x * (self.sensor_width / self.res_x)
+        print(f"physical_x: {physical_x}, physical_y: {physical_y}")
         
-        # Convert physical distances to angles from the center of the sensor
+        # convert absolute distances to displacement from center
         x_from_center = physical_x - (self.sensor_width / 2)
         y_from_center = physical_y - (self.sensor_height / 2)
-
+        print(f"x_from_center: {x_from_center}, y_from_center: {y_from_center}")
+        
         # Convert to angles across the sensor
         angle_x = math.atan((x_from_center) / self.focal_length)
         angle_y = math.atan((y_from_center) / self.focal_length)
-
-        # Calculate offsets in the x and y directions
+        print(f"angle_x: {angle_x}, angle_y: {angle_y}")
+        
+        # Fire ray out from sensor assuming level ground.
         x_offset = self.altitude / math.cos(angle_y + self.pitch) * math.tan(angle_x + self.roll)
         y_offset = self.altitude / math.cos(angle_x + self.roll) * math.tan(angle_y + self.pitch)
-
+        print(f"x_offset: {x_offset}, y_offset: {y_offset}")
+        
         # Align the offsets with the heading
         north_offset = y_offset * math.cos(self.heading) - x_offset * math.sin(self.heading)
         east_offset = y_offset * math.sin(self.heading) + x_offset * math.cos(self.heading)
-
+        print(f"north_offset: {north_offset}, east_offset: {east_offset}")
+        
         # Calculate the new latitude and longitude
         new_latitude = self.latitude + (north_offset / EARTH_RADIUS) * (180 / math.pi)
         new_longitude = self.longitude + (east_offset / EARTH_RADIUS) * (180 / math.pi) / math.cos(math.radians(self.latitude))
@@ -93,39 +98,28 @@ class GeoImage:
         Input:  latitude, longitude - coordinates in degrees
         Output: x, y - pixel coordinates
         '''
-        latitude = coordinate.lat
-        longitude = coordinate.lon
+        
+        distance = coordinate.distance_to(Coordinate(self.latitude, self.longitude, 0))
+        bearing = coordinate.bearing_to(Coordinate(self.latitude, self.longitude, 0))
+        bearing = math.radians(bearing)
 
-        # Calculate the offsets in meters
-        north_offset = (latitude - self.latitude) * (math.pi / 180) * EARTH_RADIUS
-        east_offset = (longitude - self.longitude) * (math.pi / 180) * EARTH_RADIUS * math.cos(self.latitude * math.pi / 180)
+        # Align bearing with the heading
+        theta = (bearing - self.heading) % (2 * math.pi)
 
-        # Reverse the heading alignment
-        x_offset = north_offset * math.cos(self.heading) + east_offset * math.sin(self.heading)
-        y_offset = north_offset * math.sin(self.heading) - east_offset * math.cos(self.heading)
+        # offsets in the x and y directions
+        y_offset = -distance * math.cos(bearing)
+        x_offset = -distance * math.sin(bearing)
 
-        # Reverse the offsets to get the physical distances
-        x_offset = x_offset * math.cos(self.roll) - y_offset * math.sin(self.roll)
-        y_offset = x_offset * math.sin(self.roll) + y_offset * math.cos(self.roll)
+        #alpha = 
+        
+        
 
-        # Calculate the angles from the center of the sensor
-        angle_x = math.atan(x_offset / self.altitude)
-        angle_y = math.atan(y_offset / self.altitude)
 
-        # Calculate the physical distances from the bottom left of the sensor
-        physical_x = self.focal_length * math.tan(angle_x)
-        physical_y = self.focal_length * math.tan(angle_y)
 
-        # Convert physical distances to pixel coordinates
-        x_pixel = int((physical_x + (self.sensor_width / 2)) * (self.res_x / self.sensor_width))
-        y_pixel = int((physical_y + (self.sensor_height / 2)) * (self.res_y / self.sensor_height))
-
-        # Convert pixel coordinates to the image coordinate system
-        y_pixel = self.res_y - y_pixel
 
         # logging
         if self.logger:
-            self.logger.info(f"Pixel coordinates of ({latitude}, {longitude}) in image {self.index}: ({x_pixel}, {y_pixel})")
+            self.logger.info(f"Pixel coordinates of {coordinate} in image {self.index}: ({x_pixel}, {y_pixel})")
 
         return x_pixel, y_pixel
 
@@ -165,7 +159,7 @@ def main2():
         longitude=0,
         altitude=20,
         roll=0,
-        pitch=45,
+        pitch=5,
         heading=0,
         res_x=4056,
         res_y=3040,
@@ -232,7 +226,7 @@ def main():
         fov=78.3
     )
     lat, lon = image.get_coordinates(1234, 1234)
-    print(f"Coordinates of pixel (2028, 3040): ({lat}, {lon})")
+    print(f"Coordinates of pixel (1234, 1234): ({lat}, {lon})")
     
     x_pixel, y_pixel = image.get_pixels(Coordinate(lat, lon, 0))
     print(f"Pixel coordinates of ({lat}, {lon}): ({x_pixel}, {y_pixel})")
@@ -241,6 +235,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main2()
         
     
