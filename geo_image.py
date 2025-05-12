@@ -8,7 +8,7 @@ EARTH_RADIUS = 6378137  # Earth's radius in meters
 
 
 class GeoImage:
-    def __init__(self, image_path, latitude, longitude, altitude, roll, pitch, heading, res_x, res_y, focal_length, sensor_width, sensor_height):
+    def __init__(self, image_path, latitude, longitude, altitude, roll, pitch, heading, res_x, res_y, focal_length, sensor_width, sensor_height, index=-1, logger=None, fov=None):
         '''
         image_path: path to the image file
         latitude: latitude of the sensor in degrees
@@ -22,21 +22,27 @@ class GeoImage:
         focal_length: focal length of the sensor in mm
         sensor_width: width of the sensor in mm
         sensor_height: height of the sensor in mm
+        index: index of the image in the list of images
+        logger: logger object for logging
         '''
 
         self.image = cv2.imread(image_path)
         self.latitude = latitude
         self.longitude = longitude
         self.altitude = altitude
-        self.roll = math.radians(roll) # Convert from degrees to radians
-        self.heading = math.radians(heading) # Convert from degrees to radians
-        self.pitch = math.radians(pitch) # Convert from degrees to radians
+        self.roll = math.radians((-roll)%360) # Convert from degrees to radians
+        self.heading = math.radians((heading)%360) # Convert from degrees to radians
+        self.pitch = math.radians((pitch)%360) # Convert from degrees to radians
         self.res_x = res_x
         self.res_y = res_y
         self.focal_length = focal_length / 1000  # Convert from mm to meters
         self.sensor_width = sensor_width / 1000  # Convert from mm to meters
         self.sensor_height = sensor_height / 1000  # Convert from mm to meters
         self.shape = self.image.shape
+        self.logger = logger
+        self.index = index
+        if fov is not None:
+            self.focal_length = self.focal_length_from_fov(fov)
 
 
     def get_coordinates(self, x, y):
@@ -45,35 +51,39 @@ class GeoImage:
         Input:  x, y - pixel coordinates
         Output: latitude, longitude - coordinates in degrees
         '''
+
+        # convert pixel coordinate basis to bottom left of the sensor
+        #y = self.res_y - y
+
         # Convert pixel coordinates to physical distances from the bottom left of the sensor
-        physical_y = y * (self.sensor_height / self.res_y)
+        physical_y = (self.res_y - y) * (self.sensor_height / self.res_y)
         physical_x = x * (self.sensor_width / self.res_x)
         
         # Convert physical distances to angles from the center of the sensor
         x_from_center = physical_x - (self.sensor_width / 2)
         y_from_center = physical_y - (self.sensor_height / 2)
 
-        # Compensate for roll by rotating the point around the center of the sensor
-        x_rotated = (x_from_center * math.cos(self.roll)) - (y_from_center * math.sin(self.roll))
-        y_rotated = (x_from_center * math.sin(self.roll)) + (y_from_center * math.cos(self.roll))
-
         # Convert to angles across the sensor
-        angle_x = math.atan((x_rotated) / math.hypot(self.focal_length, y_rotated))
-        angle_y = math.atan((y_rotated) / self.focal_length)
+        angle_x = math.atan((x_from_center) / self.focal_length)
+        angle_y = math.atan((y_from_center) / self.focal_length)
 
         # Calculate offsets in the x and y directions
-        x_offset = self.altitude / math.cos(angle_y + self.pitch) * math.tan(angle_x)
-        y_offset = self.altitude * math.tan(angle_y + self.pitch)
-        
+        x_offset = self.altitude / math.cos(angle_y + self.pitch) * math.tan(angle_x + self.roll)
+        y_offset = self.altitude / math.cos(angle_x + self.roll) * math.tan(angle_y + self.pitch)
 
         # Align the offsets with the heading
-        lat_offset = x_offset * math.cos(self.heading) + y_offset * math.sin(self.heading)
-        lon_offset = y_offset * math.cos(self.heading) - x_offset * math.sin(self.heading)
+        north_offset = y_offset * math.cos(self.heading) - x_offset * math.sin(self.heading)
+        east_offset = y_offset * math.sin(self.heading) + x_offset * math.cos(self.heading)
 
         # Calculate the new latitude and longitude
-        new_latitude = self.latitude + (lat_offset / EARTH_RADIUS) * (180 / math.pi)
-        new_longitude = self.longitude + (lon_offset / EARTH_RADIUS) * (180 / math.pi) / math.cos(self.latitude * math.pi / 180)
+        new_latitude = self.latitude + (north_offset / EARTH_RADIUS) * (180 / math.pi)
+        new_longitude = self.longitude + (east_offset / EARTH_RADIUS) * (180 / math.pi) / math.cos(math.radians(self.latitude))
 
+
+        # logging
+        if self.logger:
+            self.logger.info(f"Coordinates of pixel ({x}, {y}) in image {self.index}: ({new_latitude}, {new_longitude})")
+        
         return new_latitude, new_longitude
     
 
@@ -87,64 +97,146 @@ class GeoImage:
         longitude = coordinate.lon
 
         # Calculate the offsets in meters
-        lat_offset = (latitude - self.latitude) * (math.pi / 180) * EARTH_RADIUS
-        lon_offset = (longitude - self.longitude) * (math.pi / 180) * EARTH_RADIUS * math.cos(self.latitude * math.pi / 180)
+        north_offset = (latitude - self.latitude) * (math.pi / 180) * EARTH_RADIUS
+        east_offset = (longitude - self.longitude) * (math.pi / 180) * EARTH_RADIUS * math.cos(self.latitude * math.pi / 180)
 
         # Reverse the heading alignment
-        x_offset = lat_offset * math.cos(-self.heading) - lon_offset * math.sin(-self.heading)
-        y_offset = lon_offset * math.cos(-self.heading) + lat_offset * math.sin(-self.heading)
+        x_offset = north_offset * math.cos(self.heading) + east_offset * math.sin(self.heading)
+        y_offset = north_offset * math.sin(self.heading) - east_offset * math.cos(self.heading)
 
-        # Calculate the angles
-        angle_x = math.atan(x_offset / (self.altitude / math.cos(self.pitch)))
+        # Reverse the offsets to get the physical distances
+        x_offset = x_offset * math.cos(self.roll) - y_offset * math.sin(self.roll)
+        y_offset = x_offset * math.sin(self.roll) + y_offset * math.cos(self.roll)
+
+        # Calculate the angles from the center of the sensor
+        angle_x = math.atan(x_offset / self.altitude)
         angle_y = math.atan(y_offset / self.altitude)
 
-        # Convert angles to physical distances
-        x_from_center = self.focal_length * math.tan(angle_x)
-        y_from_center = self.focal_length * math.tan(angle_y)
+        # Calculate the physical distances from the bottom left of the sensor
+        physical_x = self.focal_length * math.tan(angle_x)
+        physical_y = self.focal_length * math.tan(angle_y)
 
         # Convert physical distances to pixel coordinates
-        physical_x = x_from_center + (self.sensor_width / 2)
-        physical_y = y_from_center + (self.sensor_height / 2)
+        x_pixel = int((physical_x + (self.sensor_width / 2)) * (self.res_x / self.sensor_width))
+        y_pixel = int((physical_y + (self.sensor_height / 2)) * (self.res_y / self.sensor_height))
 
-        x_pixel = int(physical_x * (self.res_x / self.sensor_width))
-        y_pixel = int(physical_y * (self.res_y / self.sensor_height))
+        # Convert pixel coordinates to the image coordinate system
+        y_pixel = self.res_y - y_pixel
+
+        # logging
+        if self.logger:
+            self.logger.info(f"Pixel coordinates of ({latitude}, {longitude}) in image {self.index}: ({x_pixel}, {y_pixel})")
 
         return x_pixel, y_pixel
-    
+
+
+    def focal_length_from_fov(self, fov):
+
+        # get diagonal sensor size
+        d = math.sqrt((self.sensor_width) ** 2 + (self.sensor_height) ** 2)
+
+        fov_rad = math.radians(fov)
+
+        # calculate focal length
+        focal_length = (d / 2) / math.tan(fov_rad / 2)
+        return focal_length
     
     def __contains__(self, coordinate):
         '''
         Check if the given coordinate is within the image bounds.
         Input:  coordinate - a tuple of (latitude, longitude)
         '''
-        latitude = coordinate.lat
-        longitude = coordinate.lon
-        x_pixel, y_pixel = self.get_pixels(latitude, longitude)
+        x_pixel, y_pixel = self.get_pixels(coordinate)
         if 0 <= x_pixel < self.res_x and 0 <= y_pixel < self.res_y:
+            # logging
+            if self.logger:
+                self.logger.info(f"Coordinate {coordinate} is within image {self.index}.")
             return True
         else:
+            # logging
+            if self.logger:
+                self.logger.info(f"Coordinate {coordinate} is outside image {self.index}.")
             return False
+
+def main2():
+    image = GeoImage(
+        image_path="test_images/0000.png",
+        latitude=0,
+        longitude=0,
+        altitude=20,
+        roll=0,
+        pitch=45,
+        heading=0,
+        res_x=4056,
+        res_y=3040,
+        focal_length=3.83,
+        sensor_width=6.29,
+        sensor_height=4.71,
+        fov=78.3
+    )
+    tl_coords = [[],[]]
+    tr_coords = [[],[]]
+    br_coords = [[],[]]
+    bl_coords = [[],[]]
+
+    for i in range(0, 2028, 100):
+        for j in range(0, 1520, 100):
+            lat, lon = image.get_coordinates(i, j)
+            tl_coords[0].append(lat)
+            tl_coords[1].append(lon)
+
+    for i in range(2028, 4056, 100):
+        for j in range(0, 1520, 100):
+            lat, lon = image.get_coordinates(i, j)
+            tr_coords[0].append(lat)
+            tr_coords[1].append(lon)
+
+    for i in range(0, 2028, 100):
+        for j in range(1520, 3040, 100):
+            lat, lon = image.get_coordinates(i, j)
+            bl_coords[0].append(lat)
+            bl_coords[1].append(lon)
+
+    for i in range(2028, 4056, 100):
+        for j in range(1520, 3040, 100):
+            lat, lon = image.get_coordinates(i, j)
+            br_coords[0].append(lat)
+            br_coords[1].append(lon)
+    
+    import matplotlib.pyplot as plt
+    plt.scatter(tl_coords[1], tl_coords[0], c='red', label='Top Left')
+    plt.scatter(tr_coords[1], tr_coords[0], c='blue', label='Top Right')
+    plt.scatter(bl_coords[1], bl_coords[0], c='green', label='Bottom Left')
+    plt.scatter(br_coords[1], br_coords[0], c='yellow', label='Bottom Right')
+    plt.title("Geographical Coordinates")
+    plt.xlabel("Longitude")
+    plt.ylabel("Latitude")
+    plt.legend()
+    plt.show()
+    
 
 def main():
     image = GeoImage(
-        image_path="path/to/image.jpg",
+        image_path="test_images/0000.png",
         latitude=0,
         longitude=0,
-        altitude=100,
+        altitude=20,
         roll=0,
-        pitch=0,
+        pitch=45,
         heading=0,
-        res_x=1920,
-        res_y=1080,
-        focal_length=15,
-        sensor_width=36,
-        sensor_height=20.3
+        res_x=4056,
+        res_y=3040,
+        focal_length=3.83,
+        sensor_width=6.29,
+        sensor_height=4.71,
+        fov=78.3
     )
+    lat, lon = image.get_coordinates(1234, 1234)
+    print(f"Coordinates of pixel (2028, 3040): ({lat}, {lon})")
+    
+    x_pixel, y_pixel = image.get_pixels(Coordinate(lat, lon, 0))
+    print(f"Pixel coordinates of ({lat}, {lon}): ({x_pixel}, {y_pixel})")
 
-
-    test = image.get_coordinates(1919, 920)
-    print(f"Coordinates: {test}")
-    print(test in image)
 
 
 
