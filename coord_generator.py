@@ -61,17 +61,15 @@ def generate_geo_images():
     geo_images = []
 
     for i in range(count + 1):
+        current_coord.alt = attitude_list[i]['alt']
         new_geo_image = GeoImage(
             image_path=f"{directory}{i:04d}.png",
-            latitude=current_coord.lat,
-            longitude=current_coord.lon,
-            altitude=attitude_list[i]['alt'],
+            coordinate=current_coord,
             roll=attitude_list[i]['roll'],
             pitch=attitude_list[i]['pitch'],
             heading=attitude_list[i]['yaw'],
             res_x=res_x,
             res_y=res_y,
-            focal_length=focal_length,
             sensor_width=sensor_width,
             sensor_height=sensor_height,
             fov=78.3
