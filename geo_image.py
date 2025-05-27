@@ -7,14 +7,11 @@ Description: This module provides spatial data for UAS images, and enables conve
 Version: v1.0.0
 '''
 
-
 import math
 import sys
 import cv2
 sys.path.append("../")
 from MAVez.Coordinate import Coordinate
-
-EARTH_RADIUS = 6378137  # Earth's radius in meters
 
 
 class GeoImage:
@@ -67,8 +64,8 @@ class GeoImage:
         '''
 
         # center the coordinates to convert to polar coordinates
-        x = x - self.res_x / 2
-        y = y - self.res_y / 2 
+        x = x - self.res_x / 2 # pixels
+        y = self.res_y / 2 - y # pixels
 
         # convert pixel coordinates to meters
         x = x * (self.sensor_width / self.res_x) # meters
@@ -78,7 +75,7 @@ class GeoImage:
         radius = math.sqrt(x ** 2 + y ** 2) # meters
 
         # theta is the angle from the x-axis to the pixel (counter-clockwise)
-        theta = math.atan2(y, x) # radians
+        theta = math.atan2(x, y) # radians
 
         # phi is the angle from the z-axis to the pixel (direction of the camera)
         phi = radius / (self.sensor_diagonal / 2) * self.fov / 2 # radians, assuming linear projection/pinhole camera model
