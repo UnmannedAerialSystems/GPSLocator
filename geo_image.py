@@ -15,9 +15,9 @@ from MAVez.Coordinate import Coordinate
 
 
 class GeoImage:
-    def __init__(self, image_path, coordinate, roll, pitch, heading, res_x, res_y, sensor_width, sensor_height, fov, index=-1, logger=None):
+    def __init__(self, image, coordinate, roll, pitch, heading, res_x, res_y, sensor_width, sensor_height, fov, index=-1, logger=None):
         '''
-        image_path: path to the image file
+        image: cv2 image object
         latitude: latitude of the sensor in degrees
         longitude: longitude of the sensor in degrees
         altitude: altitude of the sensor in meters
@@ -33,7 +33,7 @@ class GeoImage:
         logger: logger object for logging
         '''
 
-        self.image = cv2.imread(image_path)
+        self.image = image
         self.coordinate = coordinate
         self.roll = math.radians((-roll)%360) # Convert from degrees to radians
         self.heading = math.radians((heading)%360) # Convert from degrees to radians
