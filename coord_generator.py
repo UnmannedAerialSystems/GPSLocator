@@ -1,15 +1,16 @@
 import sys
 sys.path.append("../")
 from MAVez.Coordinate import Coordinate
-from .geo_image import GeoImage
+from GPSLocator.geo_image import GeoImage
 import numpy as np
 import math
+import cv2
 
 def generate_geo_images():
 
     end_coord = Coordinate(38.31583202378429, -76.5527183058615, 0, use_int=False)
     start_coord = Coordinate(38.31552770581607, -76.5509148682147, 0, use_int=False)
-    count = 13
+    count = 20
 
     distance = start_coord.distance_to(end_coord)
     heading = start_coord.bearing_to(end_coord)
@@ -56,22 +57,20 @@ def generate_geo_images():
     res_x = 4056
     res_y = 3040
 
-    directory = "../GPSLocator/test_images/"
+    directory = "./test_images/"
 
     geo_images = []
 
     for i in range(count + 1):
+        current_coord.alt = attitude_list[i]['alt']
         new_geo_image = GeoImage(
             image_path=f"{directory}{i:04d}.png",
-            latitude=current_coord.lat,
-            longitude=current_coord.lon,
-            altitude=attitude_list[i]['alt'],
+            coordinate=current_coord,
             roll=attitude_list[i]['roll'],
             pitch=attitude_list[i]['pitch'],
             heading=attitude_list[i]['yaw'],
             res_x=res_x,
             res_y=res_y,
-            focal_length=focal_length,
             sensor_width=sensor_width,
             sensor_height=sensor_height,
             fov=78.3
@@ -85,5 +84,10 @@ def generate_geo_images():
 
 if __name__ == "__main__":
     geo_images = generate_geo_images()
-    print(geo_images[0].get_coordinates(2028, 3040))
-    print(geo_images[-1].get_coordinates(2028, 0))
+    print(geo_images[16].get_coordinates(0, 0))
+    print(geo_images[16].get_coordinates(0, 3040))
+    print(geo_images[16].get_coordinates(4056, 0))
+    print(geo_images[16].get_coordinates(4056, 3040))
+    print(geo_images[16].get_coordinates(2028, 1520))
+    cv2.imshow("Image", geo_images[16].image)
+    cv2.waitKey(0)

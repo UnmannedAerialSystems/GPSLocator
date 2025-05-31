@@ -1,4 +1,7 @@
 """
+DEPRECATED MODULE, USE geo_image.py INSTEAD
+
+
 PSU UAS GEOSENSOR
 Authors: Ted Tasman, Vlad Roiban
 Date: 2024-09-26
