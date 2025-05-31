@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../")
 from MAVez.Coordinate import Coordinate
-from .geo_image import GeoImage
+from GPSLocator.geo_image import GeoImage
 import numpy as np
 import math
 import cv2
