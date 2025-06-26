@@ -55,6 +55,9 @@ class GeoImage:
                 self.logger.info(f"Converted fov from degrees to radians: {self.fov}")
         else:
             self.fov = fov
+        
+        if self.logger:
+            self.logger.info(f"Initialized GeoImage: {self.index}, {self.coordinate}")
 
 
     def get_coordinates(self, x, y):
@@ -80,14 +83,12 @@ class GeoImage:
 
         # phi is the angle from the z-axis to the pixel (direction of the camera)
         phi = radius / (self.sensor_diagonal) * self.fov # radians, assuming linear projection/pinhole camera model
-        print("Phi out:", phi)
         # factor in vehicle attitude
         point_bearing = theta + self.heading # radians
         point_pitch = phi + self.pitch # radians
 
         # calculate the distance to the point
         distance = (self.coordinate.alt * 1000) * math.tan(point_pitch) # convert altitude to mm
-        print("Distance out", distance)
 
         # calculate the latitude and longitude of the point
         target_coordinate = self.coordinate.offset_coordinate(distance / 1000, math.degrees(point_bearing)) # convert distance to meters
@@ -107,18 +108,17 @@ class GeoImage:
         
         # get the distance and bearing to the target coordinate
         distance = self.coordinate.distance_to(target_coordinate) * 1000 # convert distance to mm
-        print("Distance in:", distance)
         bearing = self.coordinate.bearing_to(target_coordinate)
         bearing = math.radians(bearing)
 
         # calculate the angle from the z-axis to the target coordinate, accounting for the pitch of the camera
         phi = math.atan2(distance, self.coordinate.alt * 1000) - self.pitch # radians, convert altitude to mm
-        print("Phi in:", phi)
         # align the bearing with the camera heading
         theta = bearing - self.heading # radians
         # calculate the radius of the pixel
         radius = phi * (self.sensor_diagonal) / self.fov # meters
-        print(radius)
+        if self.logger:
+            self.logger.info(f"Calculated radius: {radius}")
         # calculate the pixel distance from the center of the image
         x = radius * math.sin(theta)
         y = radius * math.cos(theta)
