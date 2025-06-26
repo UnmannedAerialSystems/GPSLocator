@@ -1,3 +1,4 @@
+import os
 import sys
 sys.path.append("../")
 from MAVez.Coordinate import Coordinate
@@ -57,14 +58,18 @@ def generate_geo_images():
     res_x = 4056
     res_y = 3040
 
-    directory = "./test_images/"
+    directory = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_images/")
 
     geo_images = []
 
     for i in range(count + 1):
         current_coord.alt = attitude_list[i]['alt']
+        image = cv2.imread(os.path.join(directory, f"{i:04d}.png"))
+        if image is None:
+            print(f"Image {i:04d}.png not found in {directory}")
+            continue
         new_geo_image = GeoImage(
-            image_path=f"{directory}{i:04d}.png",
+            image=image,
             coordinate=current_coord,
             roll=attitude_list[i]['roll'],
             pitch=attitude_list[i]['pitch'],
